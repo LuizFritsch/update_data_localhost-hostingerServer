@@ -14,41 +14,47 @@
 import mysql.connector
 import schedule
 import time
+
 nomeArquivo='qtdRegistros.txt'
 
 def connect_hostgators_server():
-	mydb = mysql.connector.connect(
+	mydb=mysql.connector.connect(
 	  host="192.185.210.227",
 	  user="vinilpub_guilher",
 	  passwd="302050027",
 	  database="vinilpub_guilherme_cerest"
 	)
-	mycursor=mydb.cursor()
-	return mycursor
+	return mydb.cursor()
 
 def connect_cerests_server():
-	mydb = mysql.connector.connect(
+	mydb=mysql.connector.connect(
 	  host="192.168.7.41",
 	  user="cerest",
 	  passwd="302050027",
 	  database="cerestdb"
 	)
-	mycursor = mydb.cursor()
-	return mycursor
+	return mydb.cursor()
 
 def get_hostgator():
 	mycursor=connect_hostgators_server()
 	mycursor.execute("SELECT * FROM ips_entraram_site")
-	myresult = mycursor.fetchall()
+	myresult=mycursor.fetchall()
 	for x in myresult:
 		print(x)
 
 def compair_data():
-	mycursor=connect_cerests_server()
-	mycursor.execute("SELECT * FROM relatoriofaa")
+	mydb=mysql.connector.connect(
+	  host="192.168.7.41",
+	  user="cerest",
+	  passwd="302050027",
+	  database="cerestdb"
+	)
+
+	cursor=mydb.cursor()
+	cursor.execute("SELECT * FROM relatoriofaa")
 	
 
-	myresult = mycursor.fetchall()
+	myresult=cursor.fetchall()
 	
 	qtdRegistrosArquivo=ler_arquivo()
 	qtdRegistrosServidorCerest=len(myresult)
@@ -66,18 +72,18 @@ def compair_data():
 		#print(x)
 
 def abrir_arquivo_qt_linhas(operacao):
-	arquivo = open(nomeArquivo,operacao)
+	arquivo=open(nomeArquivo,operacao)
 	return arquivo
 
 def ler_arquivo():
 	arquivo=abrir_arquivo_qt_linhas('r')
-	qtdRegistros = arquivo.read()
+	qtdRegistros=arquivo.read()
 	arquivo.close()
 	return qtdRegistros
 
 def sobescrever_aquivo(qtdRegistros):
 	arquivo=abrir_arquivo_qt_linhas('w')
-	arquivo.writelines(qtdRegistros)
+	arquivo.write(str(qtdRegistros))
 	arquivo.close()
 
 def job(t):
@@ -85,7 +91,7 @@ def job(t):
     compair_data()
     return
 
-schedule.every().day.at("10:51").do(job,'It is 12:00')
+schedule.every().day.at("11:30").do(job,'It is 12:00')
 
 while True:
     schedule.run_pending()
