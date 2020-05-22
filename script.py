@@ -15,20 +15,18 @@ import mysql.connector
 import schedule
 import time
 nomeArquivo='qtdRegistros.txt'
-def send_hostgator():
+
+def connect_hostgators_server():
 	mydb = mysql.connector.connect(
 	  host="192.185.210.227",
 	  user="vinilpub_guilher",
 	  passwd="302050027",
 	  database="vinilpub_guilherme_cerest"
 	)
-	mycursor = mydb.cursor()
-	mycursor.execute("SELECT * FROM ips_entraram_site")
-	myresult = mycursor.fetchall()
-	for x in myresult:
-		print(x)
+	mycursor=mydb.cursor()
+	return mycursor
 
-def get_cerests_server_data():
+def connect_cerests_server():
 	mydb = mysql.connector.connect(
 	  host="192.168.7.41",
 	  user="cerest",
@@ -36,12 +34,30 @@ def get_cerests_server_data():
 	  database="cerestdb"
 	)
 	mycursor = mydb.cursor()
-	mycursor.execute("SELECT * FROM relatoriofaa")
+	return mycursor
+
+def get_hostgator():
+	mycursor=connect_hostgators_server()
+	mycursor.execute("SELECT * FROM ips_entraram_site")
 	myresult = mycursor.fetchall()
+	for x in myresult:
+		print(x)
+
+def compair_data():
+	mycursor=connect_cerests_server()
+	mycursor.execute("SELECT * FROM relatoriofaa")
+	
+
+	myresult = mycursor.fetchall()
+	
 	qtdRegistrosArquivo=ler_arquivo()
 	qtdRegistrosServidorCerest=len(myresult)
-	if len(myresult)!=qtdRegistrosServidorCerest:
-		print(qtdRegistroAtualServidorCerest)
+
+	print(qtdRegistrosArquivo)
+	print(qtdRegistrosServidorCerest)
+
+	if qtdRegistrosArquivo!=qtdRegistrosServidorCerest:
+		print(qtdRegistrosServidorCerest)
 		sobescrever_aquivo(qtdRegistrosServidorCerest)
 	#recebe uma lista de lista
 	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
@@ -66,10 +82,10 @@ def sobescrever_aquivo(qtdRegistros):
 
 def job(t):
     print ("I'm working...", t)
-    get_cerests_server_data()
+    compair_data()
     return
 
-schedule.every().day.at("10:43").do(job,'It is 12:00')
+schedule.every().day.at("10:51").do(job,'It is 12:00')
 
 while True:
     schedule.run_pending()
