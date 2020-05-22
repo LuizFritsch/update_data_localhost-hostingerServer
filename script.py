@@ -14,7 +14,7 @@
 import mysql.connector
 import schedule
 import time
-
+nomeArquivo='qtdRegistros.txt'
 def send_hostgator():
 	mydb = mysql.connector.connect(
 	  host="192.185.210.227",
@@ -36,17 +36,40 @@ def get_cerests_server_data():
 	  database="cerestdb"
 	)
 	mycursor = mydb.cursor()
-	mycursor.execute("SELECT * FROM relatoriofaa WHERE CGS='145780'")
+	mycursor.execute("SELECT * FROM relatoriofaa")
 	myresult = mycursor.fetchall()
-	for x in myresult:
-		print(x)
+	qtdRegistrosArquivo=ler_arquivo()
+	qtdRegistrosServidorCerest=len(myresult)
+	if len(myresult)!=qtdRegistrosServidorCerest:
+		print(qtdRegistroAtualServidorCerest)
+		sobescrever_aquivo(qtdRegistrosServidorCerest)
+	#recebe uma lista de lista
+	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
+	#ordem da lista dentro da lista: COD,PROFISSIONAL,PROCEDIMENTO,FAA,DATA,CGS,PACIENTE,MES,ANO,AREA
+	#for x in myresult:
+		#print(x)
+
+def abrir_arquivo_qt_linhas(operacao):
+	arquivo = open(nomeArquivo,operacao)
+	return arquivo
+
+def ler_arquivo():
+	arquivo=abrir_arquivo_qt_linhas('r')
+	qtdRegistros = arquivo.read()
+	arquivo.close()
+	return qtdRegistros
+
+def sobescrever_aquivo(qtdRegistros):
+	arquivo=abrir_arquivo_qt_linhas('w')
+	arquivo.writelines(qtdRegistros)
+	arquivo.close()
 
 def job(t):
     print ("I'm working...", t)
     get_cerests_server_data()
     return
 
-schedule.every().day.at("12:00").do(job,'It is 12:00')
+schedule.every().day.at("10:43").do(job,'It is 12:00')
 
 while True:
     schedule.run_pending()
