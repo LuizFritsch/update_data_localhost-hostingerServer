@@ -14,43 +14,59 @@
 import mysql.connector
 import schedule
 import time
+import mysql.connector as connector
+
+def connection(host,user,passwd,database):
+
+    config = {
+	  	"host":host,
+	  	"user":user,
+	  	"password":passwd,
+		"port":3306,
+	  	"database":database
+	}
+    try:
+		c = connector.connect(**config)
+		return c
+    except:
+		print "connection error"
+		exit(1)
+
+def test1(): #no error method
+	cn = connection()
+	cur = cn.cursor()
+	cur.execute("SELECT * FROM relatoriofaa WHERE CGS='145780'")
+	print cur.fetchone()
 
 nomeArquivo='qtdRegistros.txt'
 
 def connect_hostgators_server():
-	mydb=mysql.connector.connect(
-	  host="192.185.210.227",
-	  user="vinilpub_guilher",
-	  passwd="302050027",
-	  database="vinilpub_guilherme_cerest"
-	)
-	return mydb.cursor()
+	host="192.185.210.227"
+	user="vinilpub_guilher"
+	passwd="302050027"
+	database="vinilpub_guilherme_cerest"
+	cn = connection(host,user,passwd,database)
+	return cn
 
 def connect_cerests_server():
-	mydb=mysql.connector.connect(
-	  host="192.168.7.41",
-	  user="cerest",
-	  passwd="302050027",
-	  database="cerestdb"
-	)
-	return mydb.cursor()
+	host="192.168.7.41"
+	user="cerest"
+	passwd="302050027"
+	database="cerestdb"
+	cn = connection(host,user,passwd,database)
+	return cn
 
 def get_hostgator():
-	mycursor=connect_hostgators_server()
+	conn=connect_cerests_server()
+	mycursor=conn.cursor()
 	mycursor.execute("SELECT * FROM ips_entraram_site")
 	myresult=mycursor.fetchall()
 	for x in myresult:
 		print(x)
 
 def compair_data():
-	mydb=mysql.connector.connect(
-	  host="192.168.7.41",
-	  user="cerest",
-	  passwd="302050027",
-	  database="cerestdb"
-	)
-
-	cursor=mydb.cursor()
+	conn=connect_cerests_server()
+	cursor=conn.cursor()
 	cursor.execute("SELECT * FROM relatoriofaa")
 	
 
@@ -59,12 +75,12 @@ def compair_data():
 	qtdRegistrosArquivo=ler_arquivo()
 	qtdRegistrosServidorCerest=len(myresult)
 
-	print(qtdRegistrosArquivo)
-	print(qtdRegistrosServidorCerest)
-
+	#se a qtd de registros no arquivo for diferente da que tem no servidor do cerest, envia tudo para o serv da hostgator
 	if qtdRegistrosArquivo!=qtdRegistrosServidorCerest:
-		print(qtdRegistrosServidorCerest)
 		sobescrever_aquivo(qtdRegistrosServidorCerest)
+	
+
+
 	#recebe uma lista de lista
 	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
 	#ordem da lista dentro da lista: COD,PROFISSIONAL,PROCEDIMENTO,FAA,DATA,CGS,PACIENTE,MES,ANO,AREA
@@ -91,7 +107,7 @@ def job(t):
     compair_data()
     return
 
-schedule.every().day.at("11:30").do(job,'It is 12:00')
+schedule.every().day.at("11:59").do(job,'It is 12:00')
 
 while True:
     schedule.run_pending()
