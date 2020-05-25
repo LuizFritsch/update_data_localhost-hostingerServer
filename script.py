@@ -64,6 +64,9 @@ def get_hostgator():
 	for x in myresult:
 		print(x)
 
+#
+def insere_paciente_hostgator():
+
 def compair_data():
 	conn=connect_cerests_server()
 	cursor=conn.cursor()
@@ -115,3 +118,21 @@ while True:
 
 
 #########################################
+
+
+
+'''
+Todo dia:
+selecionar todos pacientes servidor cerest
+verificar se count pacientes serv cerest != count(*) pacientes serv hostgator
+	se sim, inserir todos pacientes serv cerest
+		se paciente n tem usuario com mesmo cpf, criar usuario
+
+
+Todo mes:
+Selecionar todos relatoriofaa (prontuarios)
+Verificar se count relatoriofaa =!count prontuarios serv hostgator
+	Insere todos relatoriofaa em prontuarios
+
+'''
+#selecionar_dados_pacientes_servidor_cerest()
