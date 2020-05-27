@@ -82,13 +82,28 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 	else:
 		return None
 
+def normaliza_dados(nomeTabela,dados):
+	if (nomeTabela=='relatoriofaa'):
+		for linha in dados:
+			prontuario.append(linha[1],linha[2],linha[3],linha[4],linha[5])
+			paciente.append(linha[6])
+	if (nomeTabela=='profissionais'):
+		for linha in dados:
+			profissionais.append(linha[1])
 def magica():
 
 	nomeTabelas=['relatoriofaa','paciente','profissionais']
 	nomeTabelasHostgator=['prontuario','paciente','profissionais']
+	'''
+	Percorro as duas listas com nome de tabelas paralelamente.
+	Pra cada tabela, abro conexao com o servidor do cerest e verifico se precisa ser atualizada no servidor da hostgator
+	Se precisa, sobreescrevo o arquivo antigo contendo o numero de registros daquela tabela, deleto todos registros do servidor da hostgator, normalizo os dados e insiro os registros novos.
+	'''
 	for tabela,tabelaHostgator in zip(nomeTabelas,nomeTabelasHostgator):
 		connCerest=connect_cerests_server()
 		cursorCerest=connCerest.cursor()
+		
+
 		if dados=verifica_se_precisa_atualizacao(tabela) is not None:
 			sobescrever_aquivo(qtdRegistrosServidorCerest)
 			connHostg=connect_hostgators_server()
@@ -97,18 +112,7 @@ def magica():
 			if tabela=='relatoriofaa':
 			insere_hostgator(tabela,dados)
 
-	#myresult=cursor.fetchall()
-	
-	'''qtdRegistrosArquivo=ler_arquivo()
-	qtdRegistrosServidorCerest=len(myresult)
-
-	#se a qtd de registros no arquivo for diferente da que tem no servidor do cerest, envia tudo para o serv da hostgator
-	if qtdRegistrosArquivo!=qtdRegistrosServidorCerest:
-		sobescrever_aquivo(qtdRegistrosServidorCerest)'''
-	
-
-
-	#recebe uma lista de lista
+	#recebe uma lista de listas
 	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
 	#ordem da lista dentro da lista: COD,PROFISSIONAL,PROCEDIMENTO,FAA,DATA,CGS,PACIENTE,MES,ANO,AREA
 	#for x in myresult:
@@ -161,6 +165,11 @@ Verificar se count relatoriofaa =!count prontuarios serv hostgator
 '''
 #selecionar_dados_pacientes_servidor_cerest()
 
+'''
+Oi Anália, boa tarde!
+Seguinte, como tu sabe, meu contrato se encerra no dia 1 de julho sem possibilidade de renovar e eu preciso encontrar algum trabalho remunerado para podem me manter aqui.
+Nestes últimos meses tenho tido muitos problemas pessoais e isto está me afetando negativamente em todos aspectos da minha vida. Estou cogitando a possibilidade de retornar para a minha cidade, Taquari, onde inclusive irei realizar uma entrevista daqui a pouco e pode ser que eu venha a ser chamado.
+Gostaria de saber se tu não sabes de nenhuma vaga de emprego aqui em Alegrete 
 '''
 
 def test1(): #no error method
