@@ -32,14 +32,6 @@ def connection(host,user,passwd,database):
 		print "connection error"
 		exit(1)
 
-def test1(): #no error method
-	cn = connection()
-	cur = cn.cursor()
-	cur.execute("SELECT * FROM relatoriofaa WHERE CGS='145780'")
-	print cur.fetchone()
-
-nomeArquivo='qtdRegistros.txt'
-
 def connect_hostgators_server():
 	host="192.185.210.227"
 	user="vinilpub_guilher"
@@ -56,31 +48,63 @@ def connect_cerests_server():
 	cn = connection(host,user,passwd,database)
 	return cn
 
-def get_hostgator():
-	conn=connect_cerests_server()
-	mycursor=conn.cursor()
-	mycursor.execute("SELECT * FROM ips_entraram_site")
-	myresult=mycursor.fetchall()
-	for x in myresult:
-		print(x)
 
-#
-def insere_paciente_hostgator():
+#insert generico que basta passar o nome da tabela e a lista de dados.
+#insere qqr coisa em qqr tabela(dados so precisam estarem normalizados)
+def insere_hostgator(nomeTabela,dados):
+	var_string=''
+	query_colunas_tabela="DESCRIBE "+nomeTabela
+	cursor.execute(query_colunas_tabela)
+	colunas=cursor.fetchall()
+	var_string = ', '.join('?' * len(colunas))
+	for dado in dados:
+		query='INSERT INTO '+nomeTabela+''+str(colunas)+' VALUES (%s);' % var_string
+		cursor.executemany(query,dado)
+		cursor.commit()
 
-def compair_data():
+def delete_hostgator(nomeTabela):
+	query_colunas_tabela="DELETE FROM "+nomeTabela+" WHERE 1=1"
+	cursor.execute(query_colunas_tabela)
+	cursor.commit()
+
+def verifica_se_precisa_atualizacao(nomeTabela):
 	conn=connect_cerests_server()
 	cursor=conn.cursor()
-	cursor.execute("SELECT * FROM relatoriofaa")
-	
 
-	myresult=cursor.fetchall()
-	
+	cursor.execute("SELECT * FROM "+nomeTabela)
+	dadosServidor=cursor.fetchall()
+	nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
 	qtdRegistrosArquivo=ler_arquivo()
+	qtdRegistrosServidorCerest=len(dadosServidor)
+
+	if (qtdRegistrosArquivo!=qtdRegistrosServidorCerest):
+		return dadosServidor
+	else:
+		return None
+
+def magica():
+
+	nomeTabelas=['relatoriofaa','paciente','profissionais']
+	nomeTabelasHostgator=['prontuario','paciente','profissionais']
+	for tabela,tabelaHostgator in zip(nomeTabelas,nomeTabelasHostgator):
+		connCerest=connect_cerests_server()
+		cursorCerest=connCerest.cursor()
+		if dados=verifica_se_precisa_atualizacao(tabela) is not None:
+			sobescrever_aquivo(qtdRegistrosServidorCerest)
+			connHostg=connect_hostgators_server()
+			cursorHostg=connCerest.cursor()
+			delete_hostgator(tabelaHostgator)
+			if tabela=='relatoriofaa':
+			insere_hostgator(tabela,dados)
+
+	#myresult=cursor.fetchall()
+	
+	'''qtdRegistrosArquivo=ler_arquivo()
 	qtdRegistrosServidorCerest=len(myresult)
 
 	#se a qtd de registros no arquivo for diferente da que tem no servidor do cerest, envia tudo para o serv da hostgator
 	if qtdRegistrosArquivo!=qtdRegistrosServidorCerest:
-		sobescrever_aquivo(qtdRegistrosServidorCerest)
+		sobescrever_aquivo(qtdRegistrosServidorCerest)'''
 	
 
 
@@ -107,7 +131,7 @@ def sobescrever_aquivo(qtdRegistros):
 
 def job(t):
     print ("I'm working...", t)
-    compair_data()
+    magica()
     return
 
 schedule.every().day.at("11:59").do(job,'It is 12:00')
@@ -136,3 +160,19 @@ Verificar se count relatoriofaa =!count prontuarios serv hostgator
 
 '''
 #selecionar_dados_pacientes_servidor_cerest()
+
+'''
+
+def test1(): #no error method
+	cn = connection()
+	cur = cn.cursor()
+	cur.execute("SELECT * FROM relatoriofaa WHERE CGS='145780'")
+	print cur.fetchone()
+
+def get_hostgator():
+	conn=connect_cerests_server()
+	mycursor=conn.cursor()
+	mycursor.execute("SELECT * FROM ips_entraram_site")
+	myresult=mycursor.fetchall()
+	for x in myresult:
+		print(x)
