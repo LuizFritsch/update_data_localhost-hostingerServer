@@ -1,4 +1,6 @@
-# encoding=utf8
+#!/usr/bin/python
+# -*- coding: latin-1 -*-
+# coding: utf-8
 #1o passo. add ip do pc na whitelist do hostgator
 #2o passo. definir um horario para o script ser executado 
 #3o passo. verificar se o nmr de registros de pacientes foi modificado
@@ -60,7 +62,6 @@ def insere_hostgator(nomeTabela,dados):
 	cursor.execute(query_colunas_tabela)
 	colunas=cursor.fetchall()
 	var_string = ', '.join('?' * len(colunas))
-	print("inserindo dados:")
 	for v in dados.values():
 	    cols = v.keys()
 	    vals = v.values()
@@ -68,12 +69,9 @@ def insere_hostgator(nomeTabela,dados):
 	        ', '.join(cols),
 	        ', '.join(['%s'] * len(cols)));
 	    try:
-	    	print("sql: "+sql)
-	    	print("values: "+vals)
-	    	print("---")	    	
-	        cursor.execute(sql, vals)
+	    	cursor.execute(sql, vals)
 	    except Exception as e:
-	        pass
+	    	pass
 	conn.commit()
 
 def delete_hostgator(nomeTabela):
@@ -106,12 +104,17 @@ def normaliza_dados(nomeTabela,dados):
 		for linha in dados:
 			nome_profissional=str(linha[1])
 			nome_paciente=linha[6]
+			PROCEDIMENTO=linha[2]
+			FAA=linha[3]
+			DATA=linha[4]
+			CGS=linha[5]
+
 			prontuarios[i]={
 				"ID":"null",
-				"PROCEDIMENTO":linha[2],
-				"FAA":linha[3],
-				"DATA":linha[4],
-				"CGS":linha[5],
+				"PROCEDIMENTO":PROCEDIMENTO,
+				"FAA":FAA,
+				"DATA":DATA,
+				"CGS":CGS,
 				"FK_ID_PROFISSIONAL":"(SELECT ID FROM profissional WHERE ID LIKE '%"+nome_profissional+"%')",
 				"FK_ID_PACIENTE":"(SELECT ID FROM paciente WHERE NOME LIKE '%"+nome_paciente+"%')",
 			}
@@ -136,15 +139,15 @@ def normaliza_dados(nomeTabela,dados):
 			nome_paciente=linha[1]
 			pacientes[i]={
 				"ID":"null",
-				"CARTAO_SUS":"",
-				"DATA_NASCIMENTO":"",
-				"OCUPACAO":"",
-				"NATURALIDADE":"",
-				"NOME_MAE":"",
-				"PROFISSAO":"",
-				"FOTO":"",
-				"STATUS_TRABALHO":"",
-				"FK_ID_USUARIO_COMUM":"(SELECT ID FROM usuario_comum WHERE NOME LIKE '%"+nome_paciente+"%')"
+				"CARTAO_SUS":linha[2],
+				"DATA_NASCIMENTO":linha[3],
+				"OCUPACAO":linha[11],
+				"NATURALIDADE":linha[14],
+				"NOME_MAE":linha[15],
+				"PROFISSAO":linha[16],
+				"FOTO":"null",
+				"STATUS_TRABALHO":"1",
+				"FK_ID_USUARIO_COMUM":"(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"
 			}
 			i+=1
 		return pacientes
@@ -192,8 +195,10 @@ def job(t):
 
 schedule.every().day.at("11:57").do(job,'It is 12:00')
 
+job('now')
 
-
+'''
 while True:
     schedule.run_pending()
     time.sleep(5) # wait one minute
+'''
