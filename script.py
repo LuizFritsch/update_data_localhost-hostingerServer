@@ -218,18 +218,3 @@ Verificar se count relatoriofaa =!count prontuarios serv hostgator
 	Insere todos relatoriofaa em prontuarios
 
 '''
-#selecionar_dados_pacientes_servidor_cerest()
-
-def test1(): #no error method
-	cn = connection()
-	cur = cn.cursor()
-	cur.execute("SELECT * FROM relatoriofaa WHERE CGS='145780'")
-	print cur.fetchone()
-
-def get_hostgator():
-	conn=connect_cerests_server()
-	mycursor=conn.cursor()
-	mycursor.execute("SELECT * FROM ips_entraram_site")
-	myresult=mycursor.fetchall()
-	for x in myresult:
-		print(x)
