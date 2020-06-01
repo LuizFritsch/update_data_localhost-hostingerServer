@@ -1,3 +1,4 @@
+# encoding=utf8
 #1o passo. add ip do pc na whitelist do hostgator
 #2o passo. definir um horario para o script ser executado 
 #3o passo. verificar se o nmr de registros de pacientes foi modificado
@@ -15,7 +16,7 @@ import mysql.connector
 import schedule
 import time
 import mysql.connector as connector
-
+import json
 def connection(host,user,passwd,database):
 
     config = {
@@ -52,20 +53,30 @@ def connect_cerests_server():
 #insert generico que basta passar o nome da tabela e a lista de dados.
 #insere qqr coisa em qqr tabela(dados so precisam estarem normalizados)
 def insere_hostgator(nomeTabela,dados):
+	conn=connect_hostgators_server()
+	cursor=conn.cursor()
 	var_string=''
 	query_colunas_tabela="DESCRIBE "+nomeTabela
 	cursor.execute(query_colunas_tabela)
 	colunas=cursor.fetchall()
 	var_string = ', '.join('?' * len(colunas))
+	
+	for p_id, p_info in dados.items():
+		for key in p_info:
+			print(key + ':', p_info[key])
+
+
 	for dado in dados:
 		query='INSERT INTO '+nomeTabela+''+str(colunas)+' VALUES (%s);' % var_string
 		cursor.executemany(query,dado)
-		cursor.commit()
+		conn.commit()
 
 def delete_hostgator(nomeTabela):
+	conn=connect_hostgators_server()
+	cursor=conn.cursor()
 	query_colunas_tabela="DELETE FROM "+nomeTabela+" WHERE 1=1"
 	cursor.execute(query_colunas_tabela)
-	cursor.commit()
+	conn.commit()
 
 def verifica_se_precisa_atualizacao(nomeTabela):
 	conn=connect_cerests_server()
@@ -74,7 +85,7 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 	cursor.execute("SELECT * FROM "+nomeTabela)
 	dadosServidor=cursor.fetchall()
 	nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
-	qtdRegistrosArquivo=ler_arquivo()
+	qtdRegistrosArquivo=ler_arquivo(nomeArquivo)
 	qtdRegistrosServidorCerest=len(dadosServidor)
 
 	if (qtdRegistrosArquivo!=qtdRegistrosServidorCerest):
@@ -84,52 +95,97 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 
 def normaliza_dados(nomeTabela,dados):
 	if (nomeTabela=='relatoriofaa'):
+		i=0
+		prontuarios={}
 		for linha in dados:
-			prontuario.append(linha[1],linha[2],linha[3],linha[4],linha[5])
-			paciente.append(linha[6])
+			nome_profissional=str(linha[1])
+			nome_paciente=linha[6]
+			prontuarios[i]={
+				"ID":"null",
+				"PROCEDIMENTO":linha[2],
+				"FAA":linha[3],
+				"DATA":linha[4],
+				"CGS":linha[5],
+				"FK_ID_PROFISSIONAL":"(SELECT ID FROM profissional WHERE ID LIKE '%"+nome_profissional+"%')",
+				"FK_ID_PACIENTE":"(SELECT ID FROM paciente WHERE NOME LIKE '%"+nome_paciente+"%')",
+			}
+			i+=1
+		return prontuarios
+
 	if (nomeTabela=='profissionais'):
+		i=0
+		profissionais={}
 		for linha in dados:
-			profissionais.append(linha[1])
+			profissionais[i]={
+				"ID":linha[0],
+				"NOME":linha[1]
+			}
+			i+=1
+		return profissionais
+
+	if (nomeTabela=='paciente'):
+		i=0
+		pacientes={}
+		for linha in dados:
+			nome_paciente=linha[1]
+			pacientes[i]={
+				"ID":"null",
+				"CARTAO_SUS":"",
+				"DATA_NASCIMENTO":"",
+				"OCUPACAO":"",
+				"NATURALIDADE":"",
+				"NOME_MAE":"",
+				"PROFISSAO":"",
+				"FOTO":"",
+				"STATUS_TRABALHO":"",
+				"FK_ID_USUARIO_COMUM":"(SELECT ID FROM usuario_comum WHERE NOME LIKE '%"+nome_paciente+"%')"
+			}
+			i+=1
+		return pacientes
+
 def magica():
 
-	nomeTabelas=['relatoriofaa','paciente','profissionais']
-	nomeTabelasHostgator=['prontuario','paciente','profissionais']
+	nomeTabelas=['paciente','profissionais','relatoriofaa']
+	nomeTabelasHostgator=['paciente','profissional','prontuario']
 	'''
 	Percorro as duas listas com nome de tabelas paralelamente.
 	Pra cada tabela, abro conexao com o servidor do cerest e verifico se precisa ser atualizada no servidor da hostgator
 	Se precisa, sobreescrevo o arquivo antigo contendo o numero de registros daquela tabela, deleto todos registros do servidor da hostgator, normalizo os dados e insiro os registros novos.
 	'''
 	for tabela,tabelaHostgator in zip(nomeTabelas,nomeTabelasHostgator):
-		connCerest=connect_cerests_server()
-		cursorCerest=connCerest.cursor()
 		
+		
+		dados=verifica_se_precisa_atualizacao(tabela)
 
-		if dados=verifica_se_precisa_atualizacao(tabela) is not None:
-			sobescrever_aquivo(qtdRegistrosServidorCerest)
-			connHostg=connect_hostgators_server()
-			cursorHostg=connCerest.cursor()
+		if dados is not None:
+			#sobescrever_aquivo(qtdRegistrosServidorCerest)
 			delete_hostgator(tabelaHostgator)
-			if tabela=='relatoriofaa':
-			insere_hostgator(tabela,dados)
+	
+			if tabela=='profissionais':
+				diction=normaliza_dados(tabela,dados)
+				print diction
+				insere_hostgator(tabelaHostgator,diction)
 
+			print("----------------------")
+			#insere_hostgator(tabelaHostgator,dados)
 	#recebe uma lista de listas
 	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
 	#ordem da lista dentro da lista: COD,PROFISSIONAL,PROCEDIMENTO,FAA,DATA,CGS,PACIENTE,MES,ANO,AREA
 	#for x in myresult:
 		#print(x)
 
-def abrir_arquivo_qt_linhas(operacao):
+def abrir_arquivo_qt_linhas(nomeArquivo,operacao):
 	arquivo=open(nomeArquivo,operacao)
 	return arquivo
 
-def ler_arquivo():
-	arquivo=abrir_arquivo_qt_linhas('r')
+def ler_arquivo(nomeArquivo):
+	arquivo=abrir_arquivo_qt_linhas(nomeArquivo,'r')
 	qtdRegistros=arquivo.read()
 	arquivo.close()
 	return qtdRegistros
 
-def sobescrever_aquivo(qtdRegistros):
-	arquivo=abrir_arquivo_qt_linhas('w')
+def sobescrever_aquivo(nomeArquivo,qtdRegistros):
+	arquivo=abrir_arquivo_qt_linhas(nomeArquivo,'w')
 	arquivo.write(str(qtdRegistros))
 	arquivo.close()
 
@@ -138,12 +194,15 @@ def job(t):
     magica()
     return
 
-schedule.every().day.at("11:59").do(job,'It is 12:00')
+schedule.every().day.at("08:26").do(job,'It is 12:00')
+job('now')
 
-while True:
+
+
+'''while True:
     schedule.run_pending()
-    time.sleep(10) # wait one minute
-
+    time.sleep(5) # wait one minute
+'''
 
 #########################################
 
@@ -164,13 +223,6 @@ Verificar se count relatoriofaa =!count prontuarios serv hostgator
 
 '''
 #selecionar_dados_pacientes_servidor_cerest()
-
-'''
-Oi Anália, boa tarde!
-Seguinte, como tu sabe, meu contrato se encerra no dia 1 de julho sem possibilidade de renovar e eu preciso encontrar algum trabalho remunerado para podem me manter aqui.
-Nestes últimos meses tenho tido muitos problemas pessoais e isto está me afetando negativamente em todos aspectos da minha vida. Estou cogitando a possibilidade de retornar para a minha cidade, Taquari, onde inclusive irei realizar uma entrevista daqui a pouco e pode ser que eu venha a ser chamado.
-Gostaria de saber se tu não sabes de nenhuma vaga de emprego aqui em Alegrete 
-'''
 
 def test1(): #no error method
 	cn = connection()
