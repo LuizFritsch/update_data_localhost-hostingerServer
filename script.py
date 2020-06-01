@@ -60,16 +60,21 @@ def insere_hostgator(nomeTabela,dados):
 	cursor.execute(query_colunas_tabela)
 	colunas=cursor.fetchall()
 	var_string = ', '.join('?' * len(colunas))
-	
-	for p_id, p_info in dados.items():
-		for key in p_info:
-			print(key + ':', p_info[key])
-
-
-	for dado in dados:
-		query='INSERT INTO '+nomeTabela+''+str(colunas)+' VALUES (%s);' % var_string
-		cursor.executemany(query,dado)
-		conn.commit()
+	print("inserindo dados:")
+	for v in dados.values():
+	    cols = v.keys()
+	    vals = v.values()
+	    sql = "INSERT INTO "+nomeTabela+" ({}) VALUES ({})".format(
+	        ', '.join(cols),
+	        ', '.join(['%s'] * len(cols)));
+	    try:
+	    	print("sql: "+sql)
+	    	print("values: "+vals)
+	    	print("---")	    	
+	        cursor.execute(sql, vals)
+	    except Exception as e:
+	        pass
+	conn.commit()
 
 def delete_hostgator(nomeTabela):
 	conn=connect_hostgators_server()
@@ -89,6 +94,7 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 	qtdRegistrosServidorCerest=len(dadosServidor)
 
 	if (qtdRegistrosArquivo!=qtdRegistrosServidorCerest):
+		sobescrever_aquivo(nomeArquivo,qtdRegistrosServidorCerest)
 		return dadosServidor
 	else:
 		return None
@@ -153,21 +159,11 @@ def magica():
 	Se precisa, sobreescrevo o arquivo antigo contendo o numero de registros daquela tabela, deleto todos registros do servidor da hostgator, normalizo os dados e insiro os registros novos.
 	'''
 	for tabela,tabelaHostgator in zip(nomeTabelas,nomeTabelasHostgator):
-		
-		
 		dados=verifica_se_precisa_atualizacao(tabela)
-
 		if dados is not None:
-			#sobescrever_aquivo(qtdRegistrosServidorCerest)
 			delete_hostgator(tabelaHostgator)
-	
-			if tabela=='profissionais':
-				diction=normaliza_dados(tabela,dados)
-				print diction
-				insere_hostgator(tabelaHostgator,diction)
-
-			print("----------------------")
-			#insere_hostgator(tabelaHostgator,dados)
+			insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
+			
 	#recebe uma lista de listas
 	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
 	#ordem da lista dentro da lista: COD,PROFISSIONAL,PROCEDIMENTO,FAA,DATA,CGS,PACIENTE,MES,ANO,AREA
