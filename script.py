@@ -190,31 +190,10 @@ def job(t):
     magica()
     return
 
-schedule.every().day.at("08:26").do(job,'It is 12:00')
-job('now')
+schedule.every().day.at("11:57").do(job,'It is 12:00')
 
 
 
-'''while True:
+while True:
     schedule.run_pending()
     time.sleep(5) # wait one minute
-'''
-
-#########################################
-
-
-
-'''
-Todo dia:
-selecionar todos pacientes servidor cerest
-verificar se count pacientes serv cerest != count(*) pacientes serv hostgator
-	se sim, inserir todos pacientes serv cerest
-		se paciente n tem usuario com mesmo cpf, criar usuario
-
-
-Todo mes:
-Selecionar todos relatoriofaa (prontuarios)
-Verificar se count relatoriofaa =!count prontuarios serv hostgator
-	Insere todos relatoriofaa em prontuarios
-
-'''
