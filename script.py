@@ -19,9 +19,17 @@ import schedule
 import time
 import mysql.connector as connector
 import os
+import requests
+import hashlib
 
 def ha_conexao():
-	return (os.system('nc -z 8.8.8.8 53') == 0)
+	url='http://www.google.com/'
+	timeout=5
+	try:
+		_ = requests.get(url, timeout=timeout)
+		return True
+	except requests.ConnectionError:
+		return False
 
 
 def connection(host,user,passwd,database):
@@ -41,7 +49,7 @@ def connection(host,user,passwd,database):
 		exit(1)
 
 def connect_hostgators_server():
-	while (!ha_conexao()):
+	while (ha_conexao()==False):
 		print('-----------------------------------------------')
 		print('nao ha conexao, tentando reconectar em 2 seg...')
 		time.sleep(2)
@@ -53,7 +61,7 @@ def connect_hostgators_server():
 	return cn
 
 def connect_cerests_server():
-	while (!ha_conexao()):
+	while (ha_conexao()==False):
 		print('-----------------------------------------------')
 		print('nao ha conexao, tentando reconectar em 5 seg...')
 		time.sleep(5)
@@ -68,7 +76,7 @@ def connect_cerests_server():
 #insert generico que basta passar o nome da tabela e a lista de dados.
 #insere qqr coisa em qqr tabela(dados so precisam estarem normalizados)
 def insere_hostgator(nomeTabela,dados):
-	while (!ha_conexao()):
+	while (ha_conexao()==False):
 		print('-----------------------------------------------')
 		print('nao ha conexao, tentando reconectar em 5 seg...')
 		time.sleep(5)
@@ -85,10 +93,10 @@ def insere_hostgator(nomeTabela,dados):
 	for v in dados.values():
 	    cols = v.keys()
 	    vals = v.values()
-	    sql = "INSERT INTO "+nomeTabela+" ({}) VALUES ({})".format(
-	        ', '.join(cols),
-	        ', '.join(['%s'] * len(cols)));
-	    try:
+	    sql = """INSERT INTO """+nomeTabela+""" ({}) VALUES ({})""".format(
+	        """, """.join(cols),
+	        """, """.join(["""%s"""] * len(cols)))
+;	    try:
 	    	cursor.execute(sql, vals)
 	    	conn.commit()
 	    except Exception as e:
@@ -96,7 +104,7 @@ def insere_hostgator(nomeTabela,dados):
 	    	print("ERR0 NMR: "+str(i)+": "+str(e))
 
 def delete_hostgator(nomeTabela):
-	while (!ha_conexao()):
+	while (ha_conexao()==False):
 		print('-----------------------------------------------')
 		print('nao ha conexao, tentando reconectar em 5 seg...')
 		time.sleep(5)
@@ -109,7 +117,7 @@ def delete_hostgator(nomeTabela):
 	conn.commit()
 
 def verifica_se_precisa_atualizacao(nomeTabela):
-	while (!ha_conexao()):
+	while (ha_conexao()==False):
 		print('-----------------------------------------------')
 		print('nao ha conexao, tentando reconectar em 5 seg...')
 		time.sleep(5)
@@ -130,7 +138,7 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 		return None
 
 def normaliza_dados(nomeTabela,dados):
-	while (!ha_conexao()):
+	while (ha_conexao()==False):
 		print('-----------------------------------------------')
 		print('nao ha conexao, tentando reconectar em 5 seg...')
 		time.sleep(5)
@@ -190,7 +198,7 @@ def normaliza_dados(nomeTabela,dados):
 				"STATUS_TRABALHO":"1",
 				"FK_ID_USUARIO_COMUM":select_hostgator(FK_ID_USUARIO_COMUM)
 			}
-			senha="md5('"+linha[2]+"')"
+			senha= hashlib.md5(linha[2].encode()).hexdigest()
 			usuario_comum[i]={
 				"ID":"null",
 				"USUARIO":linha[2],
@@ -210,7 +218,7 @@ def normaliza_dados(nomeTabela,dados):
 		return pacientes,usuario_comum
 
 def select_hostgator(sql):
-	while (!ha_conexao()):
+	while (ha_conexao()==False):
 		print('-----------------------------------------------')
 		print('nao ha conexao, tentando reconectar em 5 seg...')
 		time.sleep(5)
