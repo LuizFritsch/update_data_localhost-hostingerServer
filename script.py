@@ -18,6 +18,11 @@ import mysql.connector
 import schedule
 import time
 import mysql.connector as connector
+import os
+
+def ha_conexao():
+	return (os.system('nc -z 8.8.8.8 53') == 0)
+
 
 def connection(host,user,passwd,database):
 
@@ -36,6 +41,10 @@ def connection(host,user,passwd,database):
 		exit(1)
 
 def connect_hostgators_server():
+	while (!ha_conexao()):
+		print('-----------------------------------------------')
+		print('nao ha conexao, tentando reconectar em 2 seg...')
+		time.sleep(2)
 	host="192.185.210.227"
 	user="vinilpub_guilher"
 	passwd="302050027"
@@ -44,6 +53,10 @@ def connect_hostgators_server():
 	return cn
 
 def connect_cerests_server():
+	while (!ha_conexao()):
+		print('-----------------------------------------------')
+		print('nao ha conexao, tentando reconectar em 5 seg...')
+		time.sleep(5)
 	host="192.168.7.41"
 	user="cerest"
 	passwd="302050027"
@@ -55,6 +68,10 @@ def connect_cerests_server():
 #insert generico que basta passar o nome da tabela e a lista de dados.
 #insere qqr coisa em qqr tabela(dados so precisam estarem normalizados)
 def insere_hostgator(nomeTabela,dados):
+	while (!ha_conexao()):
+		print('-----------------------------------------------')
+		print('nao ha conexao, tentando reconectar em 5 seg...')
+		time.sleep(5)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
 	var_string=''
@@ -79,6 +96,10 @@ def insere_hostgator(nomeTabela,dados):
 	    	print("ERR0 NMR: "+str(i)+": "+str(e))
 
 def delete_hostgator(nomeTabela):
+	while (!ha_conexao()):
+		print('-----------------------------------------------')
+		print('nao ha conexao, tentando reconectar em 5 seg...')
+		time.sleep(5)
 	print ('----------------------------------------')
 	print ('deletando dados na tabela '+nomeTabela)
 	conn=connect_hostgators_server()
@@ -88,6 +109,10 @@ def delete_hostgator(nomeTabela):
 	conn.commit()
 
 def verifica_se_precisa_atualizacao(nomeTabela):
+	while (!ha_conexao()):
+		print('-----------------------------------------------')
+		print('nao ha conexao, tentando reconectar em 5 seg...')
+		time.sleep(5)
 	conn=connect_cerests_server()
 	cursor=conn.cursor()
 	print ('----------------------------------------')
@@ -105,6 +130,10 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 		return None
 
 def normaliza_dados(nomeTabela,dados):
+	while (!ha_conexao()):
+		print('-----------------------------------------------')
+		print('nao ha conexao, tentando reconectar em 5 seg...')
+		time.sleep(5)
 	print ('----------------------------------------')
 	print ('normalizando dados na tabela '+nomeTabela)
 	if (nomeTabela=='relatoriofaa'):
@@ -181,6 +210,10 @@ def normaliza_dados(nomeTabela,dados):
 		return pacientes,usuario_comum
 
 def select_hostgator(sql):
+	while (!ha_conexao()):
+		print('-----------------------------------------------')
+		print('nao ha conexao, tentando reconectar em 5 seg...')
+		time.sleep(5)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
 	cursor.execute(sql)
