@@ -18,7 +18,7 @@ import mysql.connector
 import schedule
 import time
 import mysql.connector as connector
-import json
+
 def connection(host,user,passwd,database):
 
     config = {
@@ -62,6 +62,9 @@ def insere_hostgator(nomeTabela,dados):
 	cursor.execute(query_colunas_tabela)
 	colunas=cursor.fetchall()
 	var_string = ', '.join('?' * len(colunas))
+	i=0
+	print ('----------------------------------------')
+	print ('inserindo dados na tabela '+nomeTabela)
 	for v in dados.values():
 	    cols = v.keys()
 	    vals = v.values()
@@ -70,11 +73,14 @@ def insere_hostgator(nomeTabela,dados):
 	        ', '.join(['%s'] * len(cols)));
 	    try:
 	    	cursor.execute(sql, vals)
+	    	conn.commit()
 	    except Exception as e:
-	    	pass
-	conn.commit()
+	    	i+=1
+	    	print("ERR0 NMR: "+str(i)+": "+str(e))
 
 def delete_hostgator(nomeTabela):
+	print ('----------------------------------------')
+	print ('deletando dados na tabela '+nomeTabela)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
 	query_colunas_tabela="DELETE FROM "+nomeTabela+" WHERE 1=1"
@@ -84,7 +90,8 @@ def delete_hostgator(nomeTabela):
 def verifica_se_precisa_atualizacao(nomeTabela):
 	conn=connect_cerests_server()
 	cursor=conn.cursor()
-
+	print ('----------------------------------------')
+	print ('verificando dados na tabela '+nomeTabela)
 	cursor.execute("SELECT * FROM "+nomeTabela)
 	dadosServidor=cursor.fetchall()
 	nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
@@ -98,6 +105,8 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 		return None
 
 def normaliza_dados(nomeTabela,dados):
+	print ('----------------------------------------')
+	print ('normalizando dados na tabela '+nomeTabela)
 	if (nomeTabela=='relatoriofaa'):
 		i=0
 		prontuarios={}
@@ -108,15 +117,16 @@ def normaliza_dados(nomeTabela,dados):
 			FAA=linha[3]
 			DATA=linha[4]
 			CGS=linha[5]
-
+			FK_ID_PROFISSIONAL="(SELECT ID FROM profissional WHERE ID LIKE '%"+nome_profissional+"%')"
+			FK_ID_PACIENTE="('SELECT ID FROM paciente WHERE NOME LIKE '%"+nome_paciente+"%'')"
 			prontuarios[i]={
 				"ID":"null",
 				"PROCEDIMENTO":PROCEDIMENTO,
 				"FAA":FAA,
 				"DATA":DATA,
 				"CGS":CGS,
-				"FK_ID_PROFISSIONAL":"(SELECT ID FROM profissional WHERE ID LIKE '%"+nome_profissional+"%')",
-				"FK_ID_PACIENTE":"(SELECT ID FROM paciente WHERE NOME LIKE '%"+nome_paciente+"%')",
+				"FK_ID_PROFISSIONAL":select_hostgator(FK_ID_PROFISSIONAL),
+				"FK_ID_PACIENTE":select_hostgator(FK_ID_PACIENTE)
 			}
 			i+=1
 		return prontuarios
@@ -135,8 +145,10 @@ def normaliza_dados(nomeTabela,dados):
 	if (nomeTabela=='paciente'):
 		i=0
 		pacientes={}
+		usuario_comum={}
 		for linha in dados:
 			nome_paciente=linha[1]
+			FK_ID_USUARIO_COMUM="(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"
 			pacientes[i]={
 				"ID":"null",
 				"CARTAO_SUS":linha[2],
@@ -147,10 +159,33 @@ def normaliza_dados(nomeTabela,dados):
 				"PROFISSAO":linha[16],
 				"FOTO":"null",
 				"STATUS_TRABALHO":"1",
-				"FK_ID_USUARIO_COMUM":"(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"
+				"FK_ID_USUARIO_COMUM":select_hostgator(FK_ID_USUARIO_COMUM)
+			}
+			senha="md5('"+linha[2]+"')"
+			usuario_comum[i]={
+				"ID":"null",
+				"USUARIO":linha[2],
+				"SENHA":senha,
+				"NOME_COMPLETO":linha[1],
+				"CPF":linha[13],
+				"RG":"",
+				"CELULAR":linha[4],
+				"ENDERECO":"",
+				"EMAIL":"",
+				"LOCAL_TRABALHO":linha[16],
+				"FK_ID_FUNCAO":"2",
+				"FK_ID_MUNICIPIO":"31453",
+				"FK_ID_ESTADO":"158",
 			}
 			i+=1
-		return pacientes
+		return pacientes,usuario_comum
+
+def select_hostgator(sql):
+	conn=connect_hostgators_server()
+	cursor=conn.cursor()
+	cursor.execute(sql)
+	select=cursor.fetchone()
+	return select
 
 def magica():
 
@@ -162,10 +197,24 @@ def magica():
 	Se precisa, sobreescrevo o arquivo antigo contendo o numero de registros daquela tabela, deleto todos registros do servidor da hostgator, normalizo os dados e insiro os registros novos.
 	'''
 	for tabela,tabelaHostgator in zip(nomeTabelas,nomeTabelasHostgator):
+		
+
 		dados=verifica_se_precisa_atualizacao(tabela)
+
 		if dados is not None:
-			delete_hostgator(tabelaHostgator)
-			insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
+			if tabela=='paciente':
+				pacientes,usuario_comum=normaliza_dados(tabela,dados)
+				print('1')
+				insere_hostgator('usuario_comum',usuario_comum)
+				print('2')
+				delete_hostgator('paciente')
+				print('3')
+				insere_hostgator('paciente',pacientes)
+			else:
+				print('4')
+				delete_hostgator(tabelaHostgator)
+				print('5')
+				insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
 			
 	#recebe uma lista de listas
 	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
