@@ -240,23 +240,27 @@ def magica():
 	'''
 	for tabela,tabelaHostgator in zip(nomeTabelas,nomeTabelasHostgator):
 		
+		try:
+			dados=verifica_se_precisa_atualizacao(tabela)
 
-		dados=verifica_se_precisa_atualizacao(tabela)
-
-		if dados is not None:
-			if tabela=='paciente':
-				pacientes,usuario_comum=normaliza_dados(tabela,dados)
-				print('1')
-				insere_hostgator('usuario_comum',usuario_comum)
-				print('2')
-				delete_hostgator('paciente')
-				print('3')
-				insere_hostgator('paciente',pacientes)
-			else:
-				print('4')
-				delete_hostgator(tabelaHostgator)
-				print('5')
-				insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
+			if dados is not None:
+				if tabela=='paciente':
+					pacientes,usuario_comum=normaliza_dados(tabela,dados)
+					print('1')
+					insere_hostgator('usuario_comum',usuario_comum)
+					print('2')
+					delete_hostgator('paciente')
+					print('3')
+					insere_hostgator('paciente',pacientes)
+				else:
+					print('4')
+					delete_hostgator(tabelaHostgator)
+					print('5')
+					insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
+		except Exception as e:
+			raise e
+			print(e)	
+		
 			
 	#recebe uma lista de listas
 	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
