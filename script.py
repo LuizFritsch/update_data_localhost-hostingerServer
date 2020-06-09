@@ -95,8 +95,9 @@ def insere_hostgator(nomeTabela,dados):
 	    vals = v.values()
 	    sql = """INSERT INTO """+nomeTabela+""" ({}) VALUES ({})""".format(
 	        """, """.join(cols),
-	        """, """.join(["""%s"""] * len(cols)))
-;	    try:
+	        """, """.join(["""%s"""] * len(cols)));
+	    try:
+	    	print(vals)
 	    	cursor.execute(sql, vals)
 	    	conn.commit()
 	    except Exception as e:
@@ -154,8 +155,8 @@ def normaliza_dados(nomeTabela,dados):
 			FAA=linha[3]
 			DATA=linha[4]
 			CGS=linha[5]
-			FK_ID_PROFISSIONAL="(SELECT ID FROM profissional WHERE ID LIKE '%"+nome_profissional+"%')"
-			FK_ID_PACIENTE="('SELECT ID FROM paciente WHERE NOME LIKE '%"+nome_paciente+"%'')"
+			FK_ID_PROFISSIONAL="""(SELECT ID FROM profissional WHERE ID LIKE '%"""+nome_profissional+"""%')"""
+			FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE NOME LIKE '%"""+nome_paciente+"""%')"""
 			prontuarios[i]={
 				"ID":"null",
 				"PROCEDIMENTO":PROCEDIMENTO,
@@ -185,7 +186,7 @@ def normaliza_dados(nomeTabela,dados):
 		usuario_comum={}
 		for linha in dados:
 			nome_paciente=linha[1]
-			FK_ID_USUARIO_COMUM="(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"
+			FK_ID_USUARIO_COMUM="""(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"""+nome_paciente+"""%')"""
 			pacientes[i]={
 				"ID":"null",
 				"CARTAO_SUS":linha[2],
