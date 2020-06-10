@@ -168,62 +168,72 @@ def normaliza_dados(nomeTabela,dados):
 		i=0
 		prontuarios={}
 		for linha in dados:
-			id_profissional=linha[1]
-			nome_paciente=linha[6]
-			PROCEDIMENTO=linha[2]
-			FAA=linha[3]
-			DATA=linha[4]
-			CGS=linha[5]
-			id_paciente=str(select_hostgator("(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"))
-			FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE FK_ID_USUARIO_COMUM LIKE '%"""+id_paciente+"""%')"""
-			prontuarios[i]={
-				"ID":"null",
-				"PROCEDIMENTO":PROCEDIMENTO,
-				"FAA":FAA,
-				"DATA":DATA,
-				"CGS":CGS,
-				"FK_ID_PROFISSIONAL":id_profissional,
-				"FK_ID_PACIENTE":id_paciente
-			}
+			try:
+				id_profissional=linha[1]
+				nome_paciente=linha[6]
+				PROCEDIMENTO=linha[2]
+				FAA=linha[3]
+				DATA=linha[4]
+				CGS=linha[5]
+				id_paciente=str(select_hostgator("(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"))
+				FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE FK_ID_USUARIO_COMUM LIKE '%"""+id_paciente+"""%')"""
+				prontuarios[i]={
+					"ID":"null",
+					"PROCEDIMENTO":PROCEDIMENTO,
+					"FAA":FAA,
+					"DATA":DATA,
+					"CGS":CGS,
+					"FK_ID_PROFISSIONAL":id_profissional,
+					"FK_ID_PACIENTE":id_paciente
+				}
+			except Exception as e:
+				pass
 			i+=1
-		return prontuarios
+		return prontuarios	
+		
 
 	if (nomeTabela=='profissionais'):
 		i=0
 		profissionais={}
 		for linha in dados:
-			profissionais[i]={
-				"ID":str(linha[0]),
-				"NOME":str(linha[1])
-			}
+			try:
+				profissionais[i]={
+					"ID":str(linha[0]),
+					"NOME":str(linha[1])
+				}
+			except Exception as e:
+				pass
 			i+=1
-		return profissionais
-
+		return profissionais	
+		
 	if (nomeTabela=='usuario_comum'):
 		i=0
 		usuario_comum={}
 		for linha in dados:
-			senha= hashlib.md5(str(linha[2]).encode()).hexdigest()
-			USUARIO=linha[2]
-			NOME_COMPLETO=linha[1]
-			CPF=get_nmr(linha[13])
-			CELULAR=get_nmr(linha[4])
-			LOCAL_TRABALHO=linha[16]
-			usuario_comum[i]={
-				"ID":"null",
-				"USUARIO":USUARIO,
-				"SENHA":senha,
-				"NOME_COMPLETO":NOME_COMPLETO,
-				"CPF":CPF,
-				"RG":"",
-				"CELULAR":CELULAR,
-				"ENDERECO":"",
-				"EMAIL":"",
-				"LOCAL_TRABALHO":LOCAL_TRABALHO,
-				"FK_ID_FUNCAO":"2",
-				"FK_ID_MUNICIPIO":"31453",
-				"FK_ID_ESTADO":"158",
-			}
+			try:
+				senha= hashlib.md5(str(linha[2]).encode()).hexdigest()
+				USUARIO=linha[2]
+				NOME_COMPLETO=linha[1]
+				CPF=get_nmr(linha[13])
+				CELULAR=get_nmr(linha[4])
+				LOCAL_TRABALHO=linha[16]
+				usuario_comum[i]={
+					"ID":"null",
+					"USUARIO":USUARIO,
+					"SENHA":senha,
+					"NOME_COMPLETO":NOME_COMPLETO,
+					"CPF":CPF,
+					"RG":"",
+					"CELULAR":CELULAR,
+					"ENDERECO":"",
+					"EMAIL":"",
+					"LOCAL_TRABALHO":LOCAL_TRABALHO,
+					"FK_ID_FUNCAO":"2",
+					"FK_ID_MUNICIPIO":"31453",
+					"FK_ID_ESTADO":"158",
+				}	
+			except Exception as e:
+				pass
 			i+=1
 		return usuario_comum
 
@@ -232,48 +242,51 @@ def normaliza_dados(nomeTabela,dados):
 		pacientes={}
 		usuario_comum={}
 		for linha in dados:
-			nome_paciente=linha[1]
-			FK_ID_USUARIO_COMUM="""(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"""+nome_paciente+"""%')"""
-			fk_id_usuario_comum=select_hostgator(FK_ID_USUARIO_COMUM)
-			CARTAO_SUS=linha[2]
-			DATA_NASCIMENTO=linha[3]
-			OCUPACAO=linha[11]
-			NATURALIDADE=linha[14]
-			NOME_MAE=linha[15]
-			PROFISSAO=linha[16]
-			pacientes[i]={
-				"ID":"null",
-				"CARTAO_SUS":CARTAO_SUS,
-				"DATA_NASCIMENTO":DATA_NASCIMENTO,
-				"OCUPACAO":OCUPACAO,
-				"NATURALIDADE":NATURALIDADE,
-				"NOME_MAE":NOME_MAE,
-				"PROFISSAO":PROFISSAO,
-				"FOTO":"null",
-				"STATUS_TRABALHO":"1",
-				"FK_ID_USUARIO_COMUM":fk_id_usuario_comum
-			}
-			senha= hashlib.md5(str(linha[2]).encode()).hexdigest()
-			USUARIO=linha[2]
-			NOME_COMPLETO=linha[1]
-			CPF=get_nmr(linha[13])
-			CELULAR=get_nmr(linha[4])
-			LOCAL_TRABALHO=linha[16]
-			usuario_comum[i]={
-				"ID":"null",
-				"USUARIO":USUARIO,
-				"SENHA":senha,
-				"NOME_COMPLETO":NOME_COMPLETO,
-				"CPF":CPF,
-				"RG":"",
-				"CELULAR":CELULAR,
-				"ENDERECO":"",
-				"EMAIL":"",
-				"LOCAL_TRABALHO":LOCAL_TRABALHO,
-				"FK_ID_FUNCAO":"2",
-				"FK_ID_MUNICIPIO":"31453",
-				"FK_ID_ESTADO":"158",
-			}
+			try:
+				nome_paciente=linha[1]
+				FK_ID_USUARIO_COMUM="""(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"""+nome_paciente+"""%')"""
+				fk_id_usuario_comum=select_hostgator(FK_ID_USUARIO_COMUM)
+				CARTAO_SUS=linha[2]
+				DATA_NASCIMENTO=linha[3]
+				OCUPACAO=linha[11]
+				NATURALIDADE=linha[14]
+				NOME_MAE=linha[15]
+				PROFISSAO=linha[16]
+				pacientes[i]={
+					"ID":"null",
+					"CARTAO_SUS":CARTAO_SUS,
+					"DATA_NASCIMENTO":DATA_NASCIMENTO,
+					"OCUPACAO":OCUPACAO,
+					"NATURALIDADE":NATURALIDADE,
+					"NOME_MAE":NOME_MAE,
+					"PROFISSAO":PROFISSAO,
+					"FOTO":"null",
+					"STATUS_TRABALHO":"1",
+					"FK_ID_USUARIO_COMUM":fk_id_usuario_comum
+				}
+				senha= hashlib.md5(str(linha[2]).encode()).hexdigest()
+				USUARIO=linha[2]
+				NOME_COMPLETO=linha[1]
+				CPF=get_nmr(linha[13])
+				CELULAR=get_nmr(linha[4])
+				LOCAL_TRABALHO=linha[16]
+				usuario_comum[i]={
+					"ID":"null",
+					"USUARIO":USUARIO,
+					"SENHA":senha,
+					"NOME_COMPLETO":NOME_COMPLETO,
+					"CPF":CPF,
+					"RG":"",
+					"CELULAR":CELULAR,
+					"ENDERECO":"",
+					"EMAIL":"",
+					"LOCAL_TRABALHO":LOCAL_TRABALHO,
+					"FK_ID_FUNCAO":"2",
+					"FK_ID_MUNICIPIO":"31453",
+					"FK_ID_ESTADO":"158",
+				}
+			except Exception as e:
+				pass
 			i+=1
 		return pacientes,usuario_comum
 
