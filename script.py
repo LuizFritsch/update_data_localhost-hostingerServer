@@ -100,6 +100,7 @@ def insere_hostgator(nomeTabela,dados):
 	    except Exception as e:
 	    	i+=1
 	    	print"ERR0 NMR: "+str(i)+": "+str(e)
+	    	pass
 
 def delete_hostgator(nomeTabela):
 	while (ha_conexao()==False):
@@ -163,8 +164,9 @@ def normaliza_dados(nomeTabela,dados):
 			FAA=linha[3]
 			DATA=linha[4]
 			CGS=linha[5]
+			id_paciente=select_hostgator("(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')")
 			FK_ID_PROFISSIONAL="""(SELECT ID FROM profissional WHERE ID LIKE '%"""+nome_profissional+"""%')"""
-			FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE NOME LIKE '%"""+nome_paciente+"""%')"""
+			FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE  FK_ID_USUARIO_COMUM LIKE '%"""+id_paciente+"""%')"""
 			prontuarios[i]={
 				"ID":"null",
 				"PROCEDIMENTO":PROCEDIMENTO,
@@ -230,17 +232,6 @@ def normaliza_dados(nomeTabela,dados):
 			NATURALIDADE=linha[14]
 			NOME_MAE=linha[15]
 			PROFISSAO=linha[16]
-
-			print'---------------'
-			print(nome_paciente)
-			print(CARTAO_SUS)
-			print(DATA_NASCIMENTO)
-			print(OCUPACAO)
-			print(NATURALIDADE)
-			print(NOME_MAE)
-			print(PROFISSAO)
-			print(fk_id_usuario_comum)
-			print'---------------'
 			pacientes[i]={
 				"ID":"null",
 				"CARTAO_SUS":CARTAO_SUS,
@@ -251,7 +242,7 @@ def normaliza_dados(nomeTabela,dados):
 				"PROFISSAO":PROFISSAO,
 				"FOTO":"null",
 				"STATUS_TRABALHO":"1",
-				"FK_ID_USUARIO_COMUM"fk_id_usuario_comum:
+				"FK_ID_USUARIO_COMUM":fk_id_usuario_comum
 			}
 			senha= hashlib.md5(str(linha[2]).encode()).hexdigest()
 			USUARIO=linha[2]
@@ -292,9 +283,12 @@ def select_hostgator(sql):
 		time.sleep(5)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
-	cursor.execute(sql)
-	select=cursor.fetchone()
-	return str(select[0])
+	try:
+		cursor.execute(sql)
+		select=cursor.fetchone()
+		return str(select[0])
+	except Exception as e:
+		pass
 
 def magica():
 
