@@ -143,8 +143,7 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 	nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
 	qtdRegistrosArquivo=ler_arquivo(nomeArquivo)
 	qtdRegistrosServidorCerest=len(dadosServidor)
-
-	if (qtdRegistrosArquivo!=qtdRegistrosServidorCerest):
+	if (int(qtdRegistrosArquivo)!=int(qtdRegistrosServidorCerest)):
 		sobescrever_aquivo(nomeArquivo,qtdRegistrosServidorCerest)
 		print('os dados da tabela '+nomeTabela+' precisam serem atualizados...')
 		return dadosServidor
@@ -176,7 +175,7 @@ def normaliza_dados(nomeTabela,dados):
 			DATA=linha[4]
 			CGS=linha[5]
 			id_paciente=str(select_hostgator("(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"))
-			FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE  FK_ID_USUARIO_COMUM LIKE '%"""+id_paciente+"""%')"""
+			FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE FK_ID_USUARIO_COMUM LIKE '%"""+id_paciente+"""%')"""
 			prontuarios[i]={
 				"ID":"null",
 				"PROCEDIMENTO":PROCEDIMENTO,
@@ -327,7 +326,7 @@ def magica():
 					insere_hostgator('paciente',pacientes)
 				else:
 
-					delete_hostgator(tabelaHostgator)
+					#delete_hostgator(tabelaHostgator)
 
 					insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
 		except Exception as e:
@@ -360,10 +359,11 @@ def job(t):
     magica()
     return
 
-schedule.every().day.at("01:00").do(job,'It is 01:00AM keep ys safe, very spooky inside here')
+#schedule.every().day.at("01:00").do(job,'It is 01:00AM keep ys safe, very spooky inside here')
 
-#job('now')
+job('now')
 
-while True:
+'''while True:
     schedule.run_pending()
     time.sleep(5) # wait one minute
+'''
