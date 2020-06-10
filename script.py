@@ -19,7 +19,7 @@ import mysql.connector as connector
 import os
 import requests
 import hashlib
-from datetime import datetime
+import datetime
 
 
 def ha_conexao():
@@ -52,9 +52,8 @@ def connect_hostgators_server():
 	while (ha_conexao()==False):
 		print'-----------------------------------------------'
 		print'nao ha conexao, tentando reconectar em 2 seg...'
-		now = datetime.now()
-		timestamp = datetime.timestamp(now)
-		print("timestamp =", timestamp)
+		now = datetime.datetime.now()
+		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		time.sleep(2)
 	host="192.185.210.227"
 	user="vinilpub_guilher"
@@ -67,9 +66,8 @@ def connect_cerests_server():
 	while (ha_conexao()==False):
 		print'-----------------------------------------------'
 		print'nao ha conexao, tentando reconectar em 5 seg...'
-		now = datetime.now()
-		timestamp = datetime.timestamp(now)
-		print("timestamp =", timestamp)
+		now = datetime.datetime.now()
+		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		time.sleep(5)
 	host="192.168.7.41"
 	user="cerest"
@@ -85,9 +83,8 @@ def insere_hostgator(nomeTabela,dados):
 	while (ha_conexao()==False):
 		print'-----------------------------------------------'
 		print'nao ha conexao, tentando reconectar em 5 seg...'
-		now = datetime.now()
-		timestamp = datetime.timestamp(now)
-		print("timestamp =", timestamp)
+		now = datetime.datetime.now()
+		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		time.sleep(5)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
@@ -99,9 +96,6 @@ def insere_hostgator(nomeTabela,dados):
 	i=0
 	print ('----------------------------------------')
 	print ('inserindo dados na tabela '+nomeTabela)
-	now = datetime.now()
-	timestamp = datetime.timestamp(now)
-	print("timestamp =", timestamp)
 	for v in dados.values():
 	    cols = v.keys()
 	    vals = v.values()
@@ -120,15 +114,11 @@ def delete_hostgator(nomeTabela):
 	while (ha_conexao()==False):
 		print'-----------------------------------------------'
 		print'nao ha conexao, tentando reconectar em 5 seg...'
-		now = datetime.now()
-		timestamp = datetime.timestamp(now)
-		print("timestamp =", timestamp)
+		now = datetime.datetime.now()
+		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		time.sleep(5)
 	print ('----------------------------------------')
 	print ('deletando dados na tabela '+nomeTabela)
-	now = datetime.now()
-	timestamp = datetime.timestamp(now)
-	print("timestamp =", timestamp)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
 	query_colunas_tabela="DELETE FROM "+nomeTabela+" WHERE 1=1"
@@ -139,17 +129,15 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 	while (ha_conexao()==False):
 		print'-----------------------------------------------'
 		print'nao ha conexao, tentando reconectar em 5 seg...'
-		now = datetime.now()
-		timestamp = datetime.timestamp(now)
-		print("timestamp =", timestamp)
+		now = datetime.datetime.now()
+		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		time.sleep(5)
 	conn=connect_cerests_server()
 	cursor=conn.cursor()
 	print ('----------------------------------------')
 	print ('verificando dados na tabela '+nomeTabela)
-	now = datetime.now()
-	timestamp = datetime.timestamp(now)
-	print("timestamp =", timestamp)
+	now = datetime.datetime.now()
+	print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 	cursor.execute("SELECT * FROM "+nomeTabela)
 	dadosServidor=cursor.fetchall()
 	nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
@@ -170,27 +158,24 @@ def normaliza_dados(nomeTabela,dados):
 	while (ha_conexao()==False):
 		print '-----------------------------------------------'
 		print 'nao ha conexao, tentando reconectar em 5 seg...'
-		now = datetime.now()
-		timestamp = datetime.timestamp(now)
-		print("timestamp =", timestamp)
+		now = datetime.datetime.now()
+		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		time.sleep(5)
 	print ('----------------------------------------')
 	print ('normalizando dados na tabela '+nomeTabela)
-	now = datetime.now()
-	timestamp = datetime.timestamp(now)
-	print("timestamp =", timestamp)
+	now = datetime.datetime.now()
+	print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 	if (nomeTabela=='relatoriofaa'):
 		i=0
 		prontuarios={}
 		for linha in dados:
-			nome_profissional=linha[1]
+			id_profissional=linha[1]
 			nome_paciente=linha[6]
 			PROCEDIMENTO=linha[2]
 			FAA=linha[3]
 			DATA=linha[4]
 			CGS=linha[5]
-			id_paciente=select_hostgator("(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')")
-			FK_ID_PROFISSIONAL="""(SELECT ID FROM profissional WHERE ID LIKE '%"""+nome_profissional+"""%')"""
+			id_paciente=str(select_hostgator("(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"))
 			FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE  FK_ID_USUARIO_COMUM LIKE '%"""+id_paciente+"""%')"""
 			prontuarios[i]={
 				"ID":"null",
@@ -198,8 +183,8 @@ def normaliza_dados(nomeTabela,dados):
 				"FAA":FAA,
 				"DATA":DATA,
 				"CGS":CGS,
-				"FK_ID_PROFISSIONAL":select_hostgator(FK_ID_PROFISSIONAL),
-				"FK_ID_PACIENTE":select_hostgator(FK_ID_PACIENTE)
+				"FK_ID_PROFISSIONAL":id_profissional,
+				"FK_ID_PACIENTE":id_paciente
 			}
 			i+=1
 		return prontuarios
@@ -305,13 +290,8 @@ def select_hostgator(sql):
 	while (ha_conexao()==False):
 		print'-----------------------------------------------'
 		print'nao ha conexao, tentando reconectar em 5 seg...'
-		now = datetime.now()
-		timestamp = datetime.timestamp(now)
-		print("timestamp =", timestamp)
-		# current date and time
-		now = datetime.now()
-		timestamp = datetime.timestamp(now)
-		print("timestamp =", timestamp)
+		now = datetime.datetime.now()
+		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		time.sleep(5)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
@@ -326,6 +306,7 @@ def magica():
 
 	nomeTabelas=['paciente','profissionais','relatoriofaa']
 	nomeTabelasHostgator=['paciente','profissional','prontuario']
+
 	'''
 	Percorro as duas listas com nome de tabelas paralelamente.
 	Pra cada tabela, abro conexao com o servidor do cerest e verifico se precisa ser atualizada no servidor da hostgator
@@ -379,10 +360,11 @@ def job(t):
     magica()
     return
 
-schedule.every().day.at("1:00").do(job,'It is 1:00AM')
+#schedule.every().day.at("12:15").do(job,'It is 12:09AM')
 
-#job('now')
+job('now')
 
-while True:
+'''while True:
     schedule.run_pending()
     time.sleep(5) # wait one minute
+'''
