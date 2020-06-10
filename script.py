@@ -145,15 +145,6 @@ def normaliza_dados(nomeTabela,dados):
 		time.sleep(5)
 	print ('----------------------------------------')
 	print ('normalizando dados na tabela '+nomeTabela)
-	'''
-	if (nomeTabela=='relatoriofaa'):
-		for linha in dados:
-			dictQuerys.append("INSERT INTO prontuario ")
-	if (nomeTabela=='profissionais'):
-	
-	if (nomeTabela=='paciente'):
-	
-	'''
 	if (nomeTabela=='relatoriofaa'):
 		i=0
 		prontuarios={}
