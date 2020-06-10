@@ -1,6 +1,4 @@
-#!/usr/bin/python
-# -*- coding: latin-1 -*-
-# coding: utf-8
+# -*- coding: utf-8 -*-
 #1o passo. add ip do pc na whitelist do hostgator
 #2o passo. definir um horario para o script ser executado 
 #3o passo. verificar se o nmr de registros de pacientes foi modificado
@@ -50,8 +48,8 @@ def connection(host,user,passwd,database):
 
 def connect_hostgators_server():
 	while (ha_conexao()==False):
-		print('-----------------------------------------------')
-		print('nao ha conexao, tentando reconectar em 2 seg...')
+		print'-----------------------------------------------'
+		print'nao ha conexao, tentando reconectar em 2 seg...'
 		time.sleep(2)
 	host="192.185.210.227"
 	user="vinilpub_guilher"
@@ -62,8 +60,8 @@ def connect_hostgators_server():
 
 def connect_cerests_server():
 	while (ha_conexao()==False):
-		print('-----------------------------------------------')
-		print('nao ha conexao, tentando reconectar em 5 seg...')
+		print'-----------------------------------------------'
+		print'nao ha conexao, tentando reconectar em 5 seg...'
 		time.sleep(5)
 	host="192.168.7.41"
 	user="cerest"
@@ -77,8 +75,8 @@ def connect_cerests_server():
 #insere qqr coisa em qqr tabela(dados so precisam estarem normalizados)
 def insere_hostgator(nomeTabela,dados):
 	while (ha_conexao()==False):
-		print('-----------------------------------------------')
-		print('nao ha conexao, tentando reconectar em 5 seg...')
+		print'-----------------------------------------------'
+		print'nao ha conexao, tentando reconectar em 5 seg...'
 		time.sleep(5)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
@@ -97,17 +95,16 @@ def insere_hostgator(nomeTabela,dados):
 	        """, """.join(cols),
 	        """, """.join(["""%s"""] * len(cols)));
 	    try:
-	    	print(vals)
 	    	cursor.execute(sql, vals)
 	    	conn.commit()
 	    except Exception as e:
 	    	i+=1
-	    	print("ERR0 NMR: "+str(i)+": "+str(e))
+	    	print"ERR0 NMR: "+str(i)+": "+str(e)
 
 def delete_hostgator(nomeTabela):
 	while (ha_conexao()==False):
-		print('-----------------------------------------------')
-		print('nao ha conexao, tentando reconectar em 5 seg...')
+		print'-----------------------------------------------'
+		print'nao ha conexao, tentando reconectar em 5 seg...'
 		time.sleep(5)
 	print ('----------------------------------------')
 	print ('deletando dados na tabela '+nomeTabela)
@@ -119,8 +116,8 @@ def delete_hostgator(nomeTabela):
 
 def verifica_se_precisa_atualizacao(nomeTabela):
 	while (ha_conexao()==False):
-		print('-----------------------------------------------')
-		print('nao ha conexao, tentando reconectar em 5 seg...')
+		print'-----------------------------------------------'
+		print'nao ha conexao, tentando reconectar em 5 seg...'
 		time.sleep(5)
 	conn=connect_cerests_server()
 	cursor=conn.cursor()
@@ -139,17 +136,28 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 		return None
 
 def normaliza_dados(nomeTabela,dados):
+
+
 	while (ha_conexao()==False):
-		print('-----------------------------------------------')
-		print('nao ha conexao, tentando reconectar em 5 seg...')
+		print '-----------------------------------------------'
+		print 'nao ha conexao, tentando reconectar em 5 seg...'
 		time.sleep(5)
 	print ('----------------------------------------')
 	print ('normalizando dados na tabela '+nomeTabela)
+	'''
+	if (nomeTabela=='relatoriofaa'):
+		for linha in dados:
+			dictQuerys.append("INSERT INTO prontuario ")
+	if (nomeTabela=='profissionais'):
+	
+	if (nomeTabela=='paciente'):
+	
+	'''
 	if (nomeTabela=='relatoriofaa'):
 		i=0
 		prontuarios={}
 		for linha in dados:
-			nome_profissional=str(linha[1])
+			nome_profissional=linha[1]
 			nome_paciente=linha[6]
 			PROCEDIMENTO=linha[2]
 			FAA=linha[3]
@@ -174,11 +182,39 @@ def normaliza_dados(nomeTabela,dados):
 		profissionais={}
 		for linha in dados:
 			profissionais[i]={
-				"ID":linha[0],
-				"NOME":linha[1]
+				"ID":str(linha[0]),
+				"NOME":str(linha[1])
 			}
 			i+=1
 		return profissionais
+
+	if (nomeTabela=='usuario_comum'):
+		i=0
+		usuario_comum={}
+		for linha in dados:
+			senha= hashlib.md5(str(linha[2]).encode()).hexdigest()
+			USUARIO=linha[2]
+			NOME_COMPLETO=linha[1]
+			CPF=get_nmr(linha[13])
+			CELULAR=get_nmr(linha[4])
+			LOCAL_TRABALHO=linha[16]
+			usuario_comum[i]={
+				"ID":"null",
+				"USUARIO":USUARIO,
+				"SENHA":senha,
+				"NOME_COMPLETO":NOME_COMPLETO,
+				"CPF":CPF,
+				"RG":"",
+				"CELULAR":CELULAR,
+				"ENDERECO":"",
+				"EMAIL":"",
+				"LOCAL_TRABALHO":LOCAL_TRABALHO,
+				"FK_ID_FUNCAO":"2",
+				"FK_ID_MUNICIPIO":"31453",
+				"FK_ID_ESTADO":"158",
+			}
+			i+=1
+		return usuario_comum
 
 	if (nomeTabela=='paciente'):
 		i=0
@@ -187,30 +223,53 @@ def normaliza_dados(nomeTabela,dados):
 		for linha in dados:
 			nome_paciente=linha[1]
 			FK_ID_USUARIO_COMUM="""(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"""+nome_paciente+"""%')"""
+			fk_id_usuario_comum=select_hostgator(FK_ID_USUARIO_COMUM)
+			CARTAO_SUS=linha[2]
+			DATA_NASCIMENTO=linha[3]
+			OCUPACAO=linha[11]
+			NATURALIDADE=linha[14]
+			NOME_MAE=linha[15]
+			PROFISSAO=linha[16]
+
+			print'---------------'
+			print(nome_paciente)
+			print(CARTAO_SUS)
+			print(DATA_NASCIMENTO)
+			print(OCUPACAO)
+			print(NATURALIDADE)
+			print(NOME_MAE)
+			print(PROFISSAO)
+			print(fk_id_usuario_comum)
+			print'---------------'
 			pacientes[i]={
 				"ID":"null",
-				"CARTAO_SUS":linha[2],
-				"DATA_NASCIMENTO":linha[3],
-				"OCUPACAO":linha[11],
-				"NATURALIDADE":linha[14],
-				"NOME_MAE":linha[15],
-				"PROFISSAO":linha[16],
+				"CARTAO_SUS":CARTAO_SUS,
+				"DATA_NASCIMENTO":DATA_NASCIMENTO,
+				"OCUPACAO":OCUPACAO,
+				"NATURALIDADE":NATURALIDADE,
+				"NOME_MAE":NOME_MAE,
+				"PROFISSAO":PROFISSAO,
 				"FOTO":"null",
 				"STATUS_TRABALHO":"1",
-				"FK_ID_USUARIO_COMUM":select_hostgator(FK_ID_USUARIO_COMUM)
+				"FK_ID_USUARIO_COMUM"fk_id_usuario_comum:
 			}
-			senha= hashlib.md5(linha[2].encode()).hexdigest()
+			senha= hashlib.md5(str(linha[2]).encode()).hexdigest()
+			USUARIO=linha[2]
+			NOME_COMPLETO=linha[1]
+			CPF=get_nmr(linha[13])
+			CELULAR=get_nmr(linha[4])
+			LOCAL_TRABALHO=linha[16]
 			usuario_comum[i]={
 				"ID":"null",
-				"USUARIO":linha[2],
+				"USUARIO":USUARIO,
 				"SENHA":senha,
-				"NOME_COMPLETO":linha[1],
-				"CPF":linha[13],
+				"NOME_COMPLETO":NOME_COMPLETO,
+				"CPF":CPF,
 				"RG":"",
-				"CELULAR":linha[4],
+				"CELULAR":CELULAR,
 				"ENDERECO":"",
 				"EMAIL":"",
-				"LOCAL_TRABALHO":linha[16],
+				"LOCAL_TRABALHO":LOCAL_TRABALHO,
 				"FK_ID_FUNCAO":"2",
 				"FK_ID_MUNICIPIO":"31453",
 				"FK_ID_ESTADO":"158",
@@ -218,16 +277,24 @@ def normaliza_dados(nomeTabela,dados):
 			i+=1
 		return pacientes,usuario_comum
 
+def get_nmr(x):
+	if x == '' or x == None:
+		return ''
+	else:
+		x=x.replace('.', '')
+		x=x.replace('-', '')
+		return x
+
 def select_hostgator(sql):
 	while (ha_conexao()==False):
-		print('-----------------------------------------------')
-		print('nao ha conexao, tentando reconectar em 5 seg...')
+		print'-----------------------------------------------'
+		print'nao ha conexao, tentando reconectar em 5 seg...'
 		time.sleep(5)
 	conn=connect_hostgators_server()
 	cursor=conn.cursor()
 	cursor.execute(sql)
 	select=cursor.fetchone()
-	return select
+	return str(select[0])
 
 def magica():
 
@@ -246,27 +313,24 @@ def magica():
 			if dados is not None:
 				if tabela=='paciente':
 					pacientes,usuario_comum=normaliza_dados(tabela,dados)
-					print('1')
+
 					insere_hostgator('usuario_comum',usuario_comum)
-					print('2')
-					delete_hostgator('paciente')
-					print('3')
+
 					insere_hostgator('paciente',pacientes)
 				else:
-					print('4')
+
 					delete_hostgator(tabelaHostgator)
-					print('5')
+
 					insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
 		except Exception as e:
-			raise e
-			print(e)	
+			print e
 		
 			
 	#recebe uma lista de listas
 	#exemplo: lista=[(registro1Nome,Registro1Tel),(registro2Nome,Registro1Te2)]
 	#ordem da lista dentro da lista: COD,PROFISSIONAL,PROCEDIMENTO,FAA,DATA,CGS,PACIENTE,MES,ANO,AREA
 	#for x in myresult:
-		#print(x)
+		#printx)
 
 def abrir_arquivo_qt_linhas(nomeArquivo,operacao):
 	arquivo=open(nomeArquivo,operacao)
