@@ -360,11 +360,10 @@ def job(t):
     magica()
     return
 
-#schedule.every().day.at("12:15").do(job,'It is 12:09AM')
+schedule.every().day.at("01:00").do(job,'It is 01:00AM keep ys safe, very spooky inside here')
 
-job('now')
+#job('now')
 
-'''while True:
+while True:
     schedule.run_pending()
     time.sleep(5) # wait one minute
-'''
