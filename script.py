@@ -138,7 +138,10 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 	print ('verificando dados na tabela '+nomeTabela)
 	now = datetime.datetime.now()
 	print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
-	cursor.execute("SELECT * FROM "+nomeTabela)
+	if nomeTabela=='relatoriofaa':
+		cursor.execute("SELECT * FROM "+nomeTabela+" ORDER BY paciente")
+	else:	
+		cursor.execute("SELECT * FROM "+nomeTabela)
 	dadosServidor=cursor.fetchall()
 	nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
 	qtdRegistrosArquivo=ler_arquivo(nomeArquivo)
@@ -167,16 +170,22 @@ def normaliza_dados(nomeTabela,dados):
 	if (nomeTabela=='relatoriofaa'):
 		i=0
 		prontuarios={}
+		nome_anterior=""
 		for linha in dados:
 			try:
-				id_profissional=linha[1]
 				nome_paciente=linha[6]
+				nome_paciente=nome_paciente[:-1]
+				if nome_paciente!=nome_anterior:
+					FK_ID_USUARIO_COMUM="(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"
+					print FK_ID_USUARIO_COMUM
+					id_paciente=select_hostgator(FK_ID_USUARIO_COMUM)
+				else:
+					id_paciente=id_paciente_anterior
+				id_profissional=linha[1]
 				PROCEDIMENTO=linha[2]
 				FAA=linha[3]
 				DATA=linha[4]
-				CGS=linha[5]
-				id_paciente=str(select_hostgator("(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"))
-				FK_ID_PACIENTE="""(SELECT ID FROM paciente WHERE FK_ID_USUARIO_COMUM LIKE '%"""+id_paciente+"""%')"""
+				CGS=linha[5]				
 				prontuarios[i]={
 					"ID":"null",
 					"PROCEDIMENTO":PROCEDIMENTO,
@@ -186,6 +195,9 @@ def normaliza_dados(nomeTabela,dados):
 					"FK_ID_PROFISSIONAL":id_profissional,
 					"FK_ID_PACIENTE":id_paciente
 				}
+				nome_anterior=nome_paciente
+				id_paciente_anterior=id_paciente
+				print id_paciente
 			except Exception as e:
 				pass
 			i+=1
