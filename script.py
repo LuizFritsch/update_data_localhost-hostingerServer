@@ -174,12 +174,17 @@ def normaliza_dados(nomeTabela,dados):
 		for linha in dados:
 			try:
 				nome_paciente=linha[6]
-				nome_paciente=nome_paciente[:-1]
+				print '1'
 				if nome_paciente!=nome_anterior:
+					nome_anterior=nome_paciente
+					nome_paciente=nome_paciente[:-1]
+					print '2'
 					FK_ID_USUARIO_COMUM="(SELECT ID FROM usuario_comum WHERE NOME_COMPLETO LIKE '%"+nome_paciente+"%')"
 					print FK_ID_USUARIO_COMUM
 					id_paciente=select_hostgator(FK_ID_USUARIO_COMUM)
+					id_paciente_anterior=id_paciente
 				else:
+					print '3'
 					id_paciente=id_paciente_anterior
 				id_profissional=linha[1]
 				PROCEDIMENTO=linha[2]
@@ -195,8 +200,6 @@ def normaliza_dados(nomeTabela,dados):
 					"FK_ID_PROFISSIONAL":id_profissional,
 					"FK_ID_PACIENTE":id_paciente
 				}
-				nome_anterior=nome_paciente
-				id_paciente_anterior=id_paciente
 				print id_paciente
 			except Exception as e:
 				pass
