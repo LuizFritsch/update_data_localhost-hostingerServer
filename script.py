@@ -109,6 +109,7 @@ def insere_hostgator(nomeTabela,dados):
 	    try:
 	    	cursor.execute(sql, vals)
 	    	conn.commit()
+	    	print vals
 	    except Exception as e:
 	    	i+=1
 	    	print"ERR0 NMR: "+str(i)+": "+str(e)
@@ -154,7 +155,7 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 		qtdRegistrosArquivo=ler_arquivo(nomeArquivo)
 		qtdRegistrosServidorCerest=len(dadosServidor)
 		if (int(qtdRegistrosArquivo)!=int(qtdRegistrosServidorCerest)):
-			sobescrever_aquivo(nomeArquivo,qtdRegistrosServidorCerest)
+			#sobescrever_aquivo(nomeArquivo,qtdRegistrosServidorCerest)
 			print('os dados da tabela '+nomeTabela+' precisam serem atualizados...')
 			return dadosServidor
 		else:
@@ -196,10 +197,15 @@ def normaliza_dados(nomeTabela,dados):
 							FK_ID_USUARIO_COMUM.append(" NOME_COMPLETO LIKE '%"+parteNome+"%' AND")
 					sql=''.join(FK_ID_USUARIO_COMUM)
 					id_paciente=select_hostgator(sql)
-					id_paciente_anterior=id_paciente
 					nome_anterior=nome_paciente
+					if type(id_paciente) is type(None) or id_paciente=='':
+						continue
+					else:
+						pacienteID=select_hostgator("SELECT ID from paciente WHERE FK_ID_USUARIO_COMUM="+id_paciente+"")
+						id_paciente_anterior=pacienteID
 				else:
-					id_paciente=id_paciente_anterior
+					pacienteID=id_paciente_anterior
+					print pacienteID
 					if type(id_paciente) is type(None) or id_paciente=='':
 						continue
 				if type(id_paciente) is type(None) or id_paciente=='':
@@ -208,16 +214,18 @@ def normaliza_dados(nomeTabela,dados):
 				PROCEDIMENTO=linha[2]
 				FAA=linha[3]
 				DATA=linha[4]
-				CGS=linha[5]				
+				CGS=linha[5]
 				prontuarios[i]={
 					"ID":"null",
 					"PROCEDIMENTO":PROCEDIMENTO,
 					"FAA":FAA,
 					"DATA":DATA,
 					"CGS":CGS,
-					"FK_ID_PROFISSIONAL":id_profissional,
-					"FK_ID_PACIENTE":id_paciente
+					"FK_ID_PROFISSIONAL":int(id_profissional),
+					#na tabela prontuario, pega o ID DO PACIENTE, POREM O ID PACIENTE AQUI EH O ID DO USUARIO_COMUM
+					"FK_ID_PACIENTE":int(pacienteID)
 				}
+				print prontuarios[i]				
 			except Exception as e:
 				print 'Erro no prontuarios: '+str(e)
 			i+=1
