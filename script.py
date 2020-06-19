@@ -45,8 +45,13 @@ def connection(host,user,passwd,database):
 		c = connector.connect(**config)
 		return c
     except:
-		print "connection error"
-		exit(1)
+    	if(ha_conexao()==False):
+			print'-----------------------------------------------'
+			print'nao ha conexao, tentando reconectar em 2 seg...'
+			now = datetime.datetime.now()
+			print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
+			time.sleep(2)
+			connection(host,user,passwd,database)
 
 def connect_hostgators_server():
 	while (ha_conexao()==False):
@@ -102,7 +107,6 @@ def insere_hostgator(nomeTabela,dados):
 	        """, """.join(cols),
 	        """, """.join(["""%s"""] * len(cols)));
 	    try:
-	    	print vals
 	    	cursor.execute(sql, vals)
 	    	conn.commit()
 	    except Exception as e:
@@ -214,7 +218,6 @@ def normaliza_dados(nomeTabela,dados):
 					"FK_ID_PROFISSIONAL":id_profissional,
 					"FK_ID_PACIENTE":id_paciente
 				}
-				print prontuarios[i]
 			except Exception as e:
 				print 'Erro no prontuarios: '+str(e)
 			i+=1
@@ -350,7 +353,7 @@ def magica():
 
 	nomeTabelas=['paciente','profissionais','relatoriofaa']
 	nomeTabelasHostgator=['paciente','profissional','prontuario']
-
+	#verificar se ja n existe antes de inserir
 	'''
 	Percorro as duas listas com nome de tabelas paralelamente.
 	Pra cada tabela, abro conexao com o servidor do cerest e verifico se precisa ser atualizada no servidor da hostgator
