@@ -134,38 +134,35 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 		now = datetime.datetime.now()
 		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		time.sleep(5)
-		conn=connect_cerests_server()
-		cursor=conn.cursor()
-		try:
-			print ('----------------------------------------')
-			print ('verificando dados na tabela '+nomeTabela)
-			now = datetime.datetime.now()
-			print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
-			if nomeTabela=='relatoriofaa':
-				cursor.execute("SELECT * FROM "+nomeTabela+" ORDER BY paciente")
-			else:	
-				cursor.execute("SELECT * FROM "+nomeTabela)
-			dadosServidor=cursor.fetchall()
-			nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
-			qtdRegistrosArquivo=ler_arquivo(nomeArquivo)
-			qtdRegistrosServidorCerest=len(dadosServidor)
-			if (int(qtdRegistrosArquivo)!=int(qtdRegistrosServidorCerest)):
-				sobescrever_aquivo(nomeArquivo,qtdRegistrosServidorCerest)
-				print('os dados da tabela '+nomeTabela+' precisam serem atualizados...')
-				return dadosServidor
-			else:
-				print('nao eh necessario atualizar estes dados...')
-				return None
-		except Exception as e:
-			print 'Erro verificando: '+e
-		finally:
-			cursor.close()
-			conn.close()
-	
+	conn=connect_cerests_server()
+	cursor=conn.cursor()
+	try:
+		print ('----------------------------------------')
+		print ('verificando dados na tabela '+nomeTabela)
+		now = datetime.datetime.now()
+		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
+		if nomeTabela=='relatoriofaa':
+			cursor.execute("SELECT * FROM "+nomeTabela+" ORDER BY paciente")
+		else:	
+			cursor.execute("SELECT * FROM "+nomeTabela)
+		dadosServidor=cursor.fetchall()
+		nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
+		qtdRegistrosArquivo=ler_arquivo(nomeArquivo)
+		qtdRegistrosServidorCerest=len(dadosServidor)
+		if (int(qtdRegistrosArquivo)!=int(qtdRegistrosServidorCerest)):
+			sobescrever_aquivo(nomeArquivo,qtdRegistrosServidorCerest)
+			print('os dados da tabela '+nomeTabela+' precisam serem atualizados...')
+			return dadosServidor
+		else:
+			print('nao eh necessario atualizar estes dados...')
+			return None
+	except Exception as e:
+		print 'Erro verificando: '+str(e)
+	finally:
+		cursor.close()
+		conn.close()
 
 def normaliza_dados(nomeTabela,dados):
-
-
 	while (ha_conexao()==False):
 		print '-----------------------------------------------'
 		print 'nao ha conexao, tentando reconectar em 5 seg...'
@@ -180,25 +177,29 @@ def normaliza_dados(nomeTabela,dados):
 		i=0
 		prontuarios={}
 		nome_anterior=""
+		listaNome=[]
 		for linha in dados:
 			try:
 				nome_paciente=linha[6]
 				listaNome=nome_paciente.split()
+				listaNome = list(dict.fromkeys(listaNome))
 				if (nome_paciente!=nome_anterior):
-					#verificar se nome anterior esta contida no nome paciente if nome_anterior not in nome_paciente
 					FK_ID_USUARIO_COMUM=["SELECT ID FROM usuario_comum WHERE"]
 					for parteNome in listaNome:
-						if parteNome==listaNome[-1]:
+						if ((listaNome.index(parteNome)+1)==len(listaNome)):
 							FK_ID_USUARIO_COMUM.append(" NOME_COMPLETO LIKE '%"+parteNome+"%';")
 						else:
 							FK_ID_USUARIO_COMUM.append(" NOME_COMPLETO LIKE '%"+parteNome+"%' AND")
 					sql=''.join(FK_ID_USUARIO_COMUM)
 					id_paciente=select_hostgator(sql)
 					id_paciente_anterior=id_paciente
-					#if id == None pass 
 					nome_anterior=nome_paciente
 				else:
 					id_paciente=id_paciente_anterior
+					if type(id_paciente) is type(None) or id_paciente=='':
+						continue
+				if type(id_paciente) is type(None) or id_paciente=='':
+					continue
 				id_profissional=linha[1]
 				PROCEDIMENTO=linha[2]
 				FAA=linha[3]
@@ -213,8 +214,9 @@ def normaliza_dados(nomeTabela,dados):
 					"FK_ID_PROFISSIONAL":id_profissional,
 					"FK_ID_PACIENTE":id_paciente
 				}
+				print prontuarios[i]
 			except Exception as e:
-				print e
+				print 'Erro no prontuarios: '+str(e)
 			i+=1
 		return prontuarios	
 		
@@ -339,17 +341,15 @@ def select_hostgator(sql):
 		select=cursor.fetchone()
 		return str(select[0])
 	except Exception as e:
-		print e
+		return None
 	finally:
 		cursor.close()
 		conn.close()
 		
 def magica():
 
-	#nomeTabelas=['paciente','profissionais','relatoriofaa']
-	#nomeTabelasHostgator=['paciente','profissional','prontuario']
-	nomeTabelas=['relatoriofaa']
-	nomeTabelasHostgator=['prontuario']
+	nomeTabelas=['paciente','profissionais','relatoriofaa']
+	nomeTabelasHostgator=['paciente','profissional','prontuario']
 
 	'''
 	Percorro as duas listas com nome de tabelas paralelamente.
@@ -357,22 +357,15 @@ def magica():
 	Se precisa, sobreescrevo o arquivo antigo contendo o numero de registros daquela tabela, deleto todos registros do servidor da hostgator, normalizo os dados e insiro os registros novos.
 	'''
 	for tabela,tabelaHostgator in zip(nomeTabelas,nomeTabelasHostgator):
-		
 		try:
-			
 			dados=verifica_se_precisa_atualizacao(tabela)
-
 			if dados is not None:
 				if tabela=='paciente':
 					pacientes,usuario_comum=normaliza_dados(tabela,dados)
-
 					insere_hostgator('usuario_comum',usuario_comum)
-
 					insere_hostgator('paciente',pacientes)
 				else:
-
 					#delete_hostgator(tabelaHostgator)
-
 					insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
 		except Exception as e:
 			print e
