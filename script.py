@@ -113,7 +113,10 @@ def insere_hostgator(nomeTabela,dados):
 	    except Exception as e:
 	    	i+=1
 	    	print"ERR0 NMR: "+str(i)+": "+str(e)
+	    	escreveProntuario(sql)
 	    	pass
+	    #se arquivoProntuarios != null 
+	    	#insere(arquivoProntuarios)
 	cursor.close()
 	conn.close()
 
@@ -147,13 +150,16 @@ def verifica_se_precisa_atualizacao(nomeTabela):
 		now = datetime.datetime.now()
 		print (str(now.year)+'/'+str(now.month)+'/'+str(now.day)+' '+ str(now.hour)+':'+str(now.minute)+':'+str(now.second))
 		if nomeTabela=='relatoriofaa':
-			cursor.execute("SELECT * FROM "+nomeTabela+" ORDER BY paciente")
-		else:	
+			cursor.execute("SELECT * FROM "+nomeTabela+" WHERE AREA<6 ORDER BY paciente")
+		elif nomeTabela=='historico':
+			cursor.execute("SELECT * FROM "+nomeTabela+" ORDER BY codpac")
+		else:
 			cursor.execute("SELECT * FROM "+nomeTabela)
 		dadosServidor=cursor.fetchall()
 		nomeArquivo='qtdRegistros'+nomeTabela+'.txt'
 		qtdRegistrosArquivo=ler_arquivo(nomeArquivo)
 		qtdRegistrosServidorCerest=len(dadosServidor)
+		print (int(qtdRegistrosArquivo)!=int(qtdRegistrosServidorCerest))
 		if (int(qtdRegistrosArquivo)!=int(qtdRegistrosServidorCerest)):
 			#sobescrever_aquivo(nomeArquivo,qtdRegistrosServidorCerest)
 			print('os dados da tabela '+nomeTabela+' precisam serem atualizados...')
@@ -230,7 +236,20 @@ def normaliza_dados(nomeTabela,dados):
 				print 'Erro no prontuarios: '+str(e)
 			i+=1
 		return prontuarios	
-		
+	
+	if (nomeTabela=='ocupacao'):
+		i=0
+		ocupacoes={}
+		for linha in dados:
+			try:
+				ocupacoes[i]={
+					"ID":str(linha[0]),
+					"NOME":str(linha[1])
+				}
+			except Exception as e:
+				print e
+			i+=1
+		return ocupacoes
 
 	if (nomeTabela=='profissionais'):
 		i=0
@@ -359,8 +378,10 @@ def select_hostgator(sql):
 		
 def magica():
 
-	nomeTabelas=['paciente','profissionais','relatoriofaa']
-	nomeTabelasHostgator=['paciente','profissional','prontuario']
+	'''nomeTabelas=['ocupacao','paciente','profissionais','relatoriofaa']
+				nomeTabelasHostgator=[ocupacoes'paciente','profissional','prontuario']'''
+	nomeTabelas=['relatoriofaa']
+	nomeTabelasHostgator=['prontuario']
 	#verificar se ja n existe antes de inserir
 	'''
 	Percorro as duas listas com nome de tabelas paralelamente.
@@ -377,7 +398,9 @@ def magica():
 					insere_hostgator('paciente',pacientes)
 				else:
 					#delete_hostgator(tabelaHostgator)
-					insere_hostgator(tabelaHostgator,normaliza_dados(tabela,dados))
+					dadosN=normaliza_dados(tabela,dados)
+
+					insere_hostgator(tabelaHostgator,dadosN)
 		except Exception as e:
 			print e
 		
@@ -404,7 +427,7 @@ def sobescrever_aquivo(nomeArquivo,qtdRegistros):
 	arquivo.close()
 
 def escreveProntuario(linha):
-	arquivo=abrir_arquivo_qt_linhas('prontuarioSQL','a')
+	arquivo=abrir_arquivo_qt_linhas('prontuarioSQL.txt','a')
 	arquivo.write(str(linha))
 	arquivo.close()
 
